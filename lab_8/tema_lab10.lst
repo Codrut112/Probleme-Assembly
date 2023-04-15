@@ -1,0 +1,71 @@
+     1                                  bits 32
+     2                                  
+     3                                  global start
+     4                                  
+     5                                  extern exit, printf, scanf
+     6                                  import exit msvcrt.dll
+     7                                  import printf msvcrt.dll
+     8                                  import scanf msvcrt.dll
+     9                                  ;4. Se dau doua numere naturale a si b (a, b: word, definite in segmentul de date). Sa se calculeze produsul lor si sa se afiseze in urmatorul format: "<a> * <b> = <result>"
+    10                                  ; Exemplu: "2 * 4 = 8"
+    11                                  ; Valorile vor fi afisate in format decimal (baza 10) cu semn.
+    12                                  segment data use32 class=data
+    13                                  
+    14 00000000 256400                      format db "%d", 0
+    15 00000003 696E74726F64756365-         citire_a db "introduceti a: ", 0
+    15 0000000C 746920613A2000     
+    16 00000013 696E74726F64756365-         citire_b db "introduceti b: ", 0
+    16 0000001C 746920623A2000     
+    17 00000023 2564202A202564203D-         format_print db "%d * %d = %d", 0
+    17 0000002C 20256400           
+    18 00000030 0000                        a dw 0
+    19 00000032 0000                        b dw 0
+    20 00000034 00000000                    s dd 0
+    21                                  
+    22                                  segment code use32 class=code
+    23                                  start:
+    24                                      ;printf("Introduceti a:")
+    25 00000000 68[03000000]                push dword citire_a
+    26 00000005 FF15[00000000]              call [printf]
+    27 0000000B 83C404                      add esp, 4
+    28                                      
+    29                                      ;apel scanf(%d,a)
+    30 0000000E 68[30000000]                push dword a
+    31 00000013 68[00000000]                push dword format
+    32 00000018 FF15[00000000]              call [scanf]
+    33 0000001E 83C408                      add esp, 4*2 
+    34                                      
+    35                                      
+    36 00000021 FF35[30000000]              push dword [a];il salvez pe stiva pe a
+    37                                      
+    38                                      ;apel printf("introduceti b:")
+    39 00000027 68[13000000]                push dword citire_b
+    40 0000002C FF15[00000000]              call [printf]
+    41 00000032 83C404                      add esp, 4
+    42                                      
+    43                                      ;apel scanf(%d,b)
+    44 00000035 68[32000000]                push dword b
+    45 0000003A 68[00000000]                push dword format
+    46 0000003F FF15[00000000]              call [scanf]
+    47 00000045 83C408                      add esp, 4*2  ;citim b
+    48                                      
+    49 00000048 5A                          pop edx;edx=[a]
+    50 00000049 BB00000000                  mov ebx, 0
+    51 0000004E 031D[32000000]              add ebx, [b];edx=[b]
+    52                                      
+    53 00000054 89D0                        mov eax, edx;eax=[a]
+    54 00000056 52                          push edx;salvez [a] pe stiva
+    55 00000057 66F7E3                      mul bx;eax=[a]*[b]
+    56 0000005A 5A                          pop edx;edx=[a]
+    57                                      
+    58                                     ;apel printf("%d * %d = %d",a,b,a*b)
+    59 0000005B 50                          push eax
+    60 0000005C 53                          push ebx
+    61 0000005D 52                          push edx
+    62 0000005E 68[23000000]                push dword format_print
+    63 00000063 FF15[00000000]              call [printf]
+    64 00000069 83C410                      add esp, 4*4
+    65                                  
+    66                                  
+    67 0000006C 6A00                        push dword 0
+    68 0000006E FF15[00000000]              call [exit]

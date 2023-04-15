@@ -1,0 +1,77 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,gets,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import gets msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 <res 00000064>              s resb 100
+    14 00000064 <res 00000064>              litere_mici resb 100
+    15 000000C8 <res 00000064>              litere_mari resb 100
+    16 0000012C 257320257300                format_print db "%s %s",0
+    17                                  
+    18                                  ; our code starts here
+    19                                  segment code use32 class=code
+    20                                      start:
+    21 00000000 68[00000000]                    push dword s
+    22 00000005 FF15[00000000]                  call [gets]
+    23                                          
+    24                                          
+    25                                          
+    26                                          
+    27 0000000B BE[00000000]                    mov esi,s
+    28                                         
+    29 00000010 B8[64000000]                    mov eax,litere_mici
+    30 00000015 BB[C8000000]                    mov ebx,litere_mari
+    31                                          repeta:
+    32                                          
+    33 0000001A 803E00                          cmp byte[esi],0
+    34 0000001D 7427                            je gata
+    35                                          
+    36 0000001F 803E41                          cmp byte[esi],'A'
+    37 00000022 7302                            jae continua
+    38 00000024 721D                            jb  urmatorul
+    39                                          
+    40                                          continua :
+    41 00000026 803E5A                          cmp byte[esi],'Z'
+    42 00000029 7613                            jbe litera_mare
+    43 0000002B 7700                            ja verifica_litera_mica
+    44                                          
+    45                                          verifica_litera_mica:
+    46 0000002D 803E7A                          cmp byte[esi],'z'
+    47 00000030 7711                            ja urmatorul
+    48 00000032 803E61                          cmp byte[esi],'a'
+    49 00000035 720C                            jb urmatorul
+    50 00000037 8A0E                            mov cl,byte[esi]
+    51 00000039 8808                            mov byte[eax],cl
+    52 0000003B 40                              inc eax
+    53 0000003C EB05                            jmp urmatorul
+    54                                          
+    55                                          litera_mare:
+    56 0000003E 8A0E                            mov cl,byte[esi]
+    57 00000040 880B                            mov byte[ebx],cl
+    58 00000042 43                              inc ebx
+    59                                          
+    60                                          urmatorul:
+    61 00000043 46                              inc esi
+    62 00000044 EBD4                            jmp repeta
+    63                                          gata:
+    64                                          
+    65 00000046 68[C8000000]                    push  dword litere_mari
+    66 0000004B 68[64000000]                    push  dword litere_mici
+    67 00000050 68[2C010000]                    push format_print
+    68 00000055 FF15[00000000]                  call [printf]
+    69 0000005B 83C40C                          add esp,4*3
+    70                                          
+    71                                          
+    72                                          
+    73                                          
+    74                                          
+    75                                          
+    76 0000005E 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    77 00000060 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

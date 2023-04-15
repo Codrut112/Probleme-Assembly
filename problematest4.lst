@@ -1,0 +1,155 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import printf msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  
+    12                                  segment data use32 class=data
+    13 00000000 770000000000000000-     s dq 1110111b,100000000h,0002e7fch,5,11101111b
+    13 00000009 00000001000000FCE7-
+    13 00000012 020000000000050000-
+    13 0000001B 0000000000EF000000-
+    13 00000024 00000000           
+    14                                  
+    15                                  len equ ($-s)/8
+    16 00000028 <res 00000014>          rez resd len   
+    17 0000003C 25782000                print_format db '%x ',0
+    18 00000040 256400                  print_formatul db '%d',0
+    19 00000043 202000                  spatiu db '  ',0
+    20 00000046 00000000                contor dd 0
+    21 0000004A 00                      ok db 0
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25 00000000 BF[00000000]                mov edi,s;punem adresa sirului in edi
+    26 00000005 B905000000                  mov ecx,len;punem lungimea sirului in ecx
+    27 0000000A BE[28000000]                mov esi,rez;punem adresa sirului rezultat in esi
+    28                                      repeta:
+    29                                     
+    30                                      
+    31                                      
+    32 0000000F 51                          push ecx;salvam ecx
+    33 00000010 8B07                        mov eax,[edi];punem eax dw inferior
+    34 00000012 89C3                        mov ebx,eax;salvam eax
+    35 00000014 B920000000                  mov ecx,32
+    36 00000019 B200                        mov dl,0
+    37                                      verifica:;verifica daca sunt 3 de 1 consecutivi
+    38                                      
+    39 0000001B 83F900                      cmp ecx,0
+    40 0000001E 7E14                        jle gata_verificare1
+    41                                      
+    42 00000020 49                           dec ecx
+    43 00000021 D1E0                         shl eax,1
+    44 00000023 73F6                         jnc verifica
+    45                                       
+    46 00000025 49                           dec ecx
+    47 00000026 D1E0                         shl eax,1
+    48 00000028 73F1                         jnc verifica
+    49                                       
+    50                                       
+    51                                       
+    52 0000002A 49                           dec ecx
+    53 0000002B D1E0                         shl eax,1
+    54 0000002D 73EC                         jnc verifica
+    55                                       
+    56 0000002F 80C201                       add dl,1
+    57 00000032 EBE7                         jmp verifica
+    58                                       
+    59                                       
+    60                                      gata_verificare1:
+    61 00000034 803D[4A000000]01            cmp byte[ok],1
+    62 0000003B 7411                        je gata_verificare2
+    63 0000003D C605[4A000000]01            mov byte[ok],1
+    64                                      
+    65 00000044 8B4704                      mov eax,[edi+4];punem eax dw superio
+    66 00000047 B920000000                  mov ecx,32
+    67 0000004C EBCD                        jmp verifica
+    68                                      gata_verificare2:
+    69 0000004E 59                          pop ecx
+    70 0000004F 83C704                      add edi,4
+    71                                      
+    72 00000052 80FA02                      cmp dl,2;daca sunt 2 secvente de 111 atunci adaugam in sir
+    73 00000055 7311                        jae adauga_sir
+    74 00000057 E2B6                        loop repeta
+    75                                      
+    76                                      
+    77                                      
+    78                                      
+    79                                      
+    80                                      
+    81 00000059 833D[46000000]00            cmp dword[contor],0
+    82 00000060 7714                        ja afisare
+    83 00000062 0F8493000000                jz gata
+    84                                      
+    85                                      adauga_sir:
+    86                                    
+    87 00000068 891E                        mov [esi],ebx
+    88 0000006A 83C604                      add esi,4
+    89 0000006D 8305[46000000]01            add dword[contor],1;incrementam contorul
+    90 00000074 E299                        loop repeta
+    91                                      
+    92                                      
+    93                                      afisare:
+    94 00000076 BB00000000                  mov ebx,0
+    95                                      
+    96                                      afiseaza:
+    97 0000007B FFB3[28000000]              push dword[rez+ebx]
+    98 00000081 68[3C000000]                push print_format
+    99 00000086 FF15[00000000]              call [printf]
+   100 0000008C 83C408                      add esp,4*2    
+   101 0000008F 43                          inc ebx
+   102 00000090 3B1D[46000000]              cmp ebx,dword[contor]
+   103 00000096 7402                        je afisare2
+   104 00000098 EBE1                        jmp afiseaza
+   105                                      
+   106                                      
+   107                                      afisare2:
+   108 0000009A BB00000000                  mov ebx,0
+   109                                      afiseaza2:
+   110 0000009F 68[43000000]                push spatiu;afisam spatiu intre 
+   111 000000A4 FF15[00000000]              call [printf]
+   112 000000AA 83C404                      add esp,4*1  
+   113 000000AD B11F                        mov cl,31
+   114 000000AF C605[4A000000]00            mov byte[ok],0
+   115                                      afisare_pe_biti:
+   116 000000B6 8B93[28000000]              mov edx,dword[rez+ebx];afisam bit cu bit
+   117 000000BC D3EA                        shr edx,cl 
+   118 000000BE 83E201                      and edx,1
+   119 000000C1 83FA00                      cmp edx,0
+   120 000000C4 772C                        ja seteaza_ok;setam un ok la prima inatlnire a unui bit nenul
+   121                                      intoarece:
+   122 000000C6 51                          push ecx
+   123 000000C7 803D[4A000000]01            cmp byte[ok],1
+   124 000000CE 7510                        jne nu_afisa
+   125 000000D0 52                          push edx
+   126 000000D1 68[40000000]                push print_formatul;afisare
+   127 000000D6 FF15[00000000]              call [printf]
+   128 000000DC 83C408                      add esp,4*2  
+   129 000000DF 59                          pop ecx
+   130                                      nu_afisa  :
+   131 000000E0 FEC9                        dec cl
+   132 000000E2 80F9FF                      cmp cl,-1
+   133 000000E5 75CF                        jne afisare_pe_biti
+   134 000000E7 43                          inc ebx
+   135 000000E8 3B1D[46000000]              cmp ebx,dword[contor]
+   136 000000EE 740B                        je gata
+   137 000000F0 EBAD                        jmp afiseaza2
+   138                                      seteaza_ok:
+   139 000000F2 C605[4A000000]01            mov byte[ok],1
+   140 000000F9 EBCB                        jmp intoarece
+   141                                      gata:
+   142                                      
+   143                                      
+   144                                      
+   145                                      
+   146                                      
+   147                                      
+   148                                      
+   149                                          
+   150 000000FB 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+   151 000000FD FF15[00000000]                  call    [exit]       ; call exit to terminate the program

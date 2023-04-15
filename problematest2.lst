@@ -1,0 +1,87 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,scanf,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import scanf msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 <res 00000FA0>              sir1 resd 1000
+    14 00000FA0 <res 000003E8>              sir2 resb 1000
+    15 00001388 256400                      format_citire db '%d',0
+    16 0000138B 6E3D                        format db 'n='
+    17 0000138D 00000000                    n dd 0
+    18 00001391 00                          suma_cifre db 0
+    19 00001392 00000000                    contor dd 0
+    20                                      
+    21                                  segment code use32 class=code
+    22                                      start:
+    23                                      
+    24 00000000 68[8B130000]                push dword format
+    25 00000005 FF15[00000000]              call [printf]
+    26 0000000B 83C404                      add esp,4;afisam n=
+    27 0000000E 68[8D130000]                push dword n
+    28 00000013 68[88130000]                push dword format_citire
+    29 00000018 FF15[00000000]              call [scanf];citim numarul
+    30 0000001E 83C408                      add esp,4*2
+    31 00000021 A1[8D130000]                mov eax,[n]
+    32 00000026 A3[92130000]                mov dword[contor],eax;salvam numarul de elemente care trb citite
+    33                                      
+    34 0000002B BF[00000000]                mov edi,sir1
+    35 00000030 BE[A00F0000]                mov esi,sir2
+    36                                      
+    37                                      repeta:
+    38 00000035 FF0D[92130000]              dec dword[contor]
+    39 0000003B 68[8D130000]                push n
+    40 00000040 68[88130000]                push format_citire;citim un dw
+    41 00000045 FF15[00000000]              call [scanf]
+    42 0000004B 83C408                      add esp,4*2
+    43 0000004E A1[8D130000]                mov eax,[n];cum dimensiunea maxima este 65535 numarul incape pe word
+    44 00000053 8907                        mov [edi],eax
+    45 00000055 83C704                      add edi,4
+    46 00000058 66BB0A00                    mov bx,10
+    47 0000005C C605[91130000]00            mov byte[suma_cifre],0
+    48                                      aduna_cifra:;facem suma cifrelor pare
+    49 00000063 50                          push eax
+    50 00000064 6658                        pop ax
+    51 00000066 665A                        pop dx
+    52 00000068 66F7F3                      div bx
+    53 0000006B 6683FA01                    cmp dx,1
+    54 0000006F 741E                        je nu_adauga
+    55 00000071 6683FA03                    cmp dx,3
+    56 00000075 7418                        je nu_adauga
+    57 00000077 6683FA05                    cmp dx,5
+    58 0000007B 7412                        je nu_adauga
+    59 0000007D 6683FA07                    cmp dx,7
+    60 00000081 740C                        je nu_adauga
+    61 00000083 6683FA09                    cmp dx,9
+    62 00000087 7406                        je nu_adauga
+    63 00000089 0015[91130000]              add byte[suma_cifre],dl
+    64                                      nu_adauga:
+    65 0000008F 6683F800                    cmp ax,0
+    66 00000093 7715                        ja restaurare
+    67 00000095 A0[91130000]                mov al,byte[suma_cifre]
+    68 0000009A 8806                        mov [esi],al
+    69 0000009C 83C601                      add esi,1
+    70 0000009F 833D[92130000]00            cmp dword[contor],0
+    71 000000A6 758D                        jne repeta
+    72                                      
+    73 000000A8 EB05                        jmp gata
+    74                                      restaurare:
+    75 000000AA 0FB7C0                      movzx eax,ax
+    76 000000AD EBB4                        jmp aduna_cifra
+    77                                      gata:
+    78 000000AF FF35[91130000]              push dword[suma_cifre]
+    79 000000B5 68[88130000]                push dword format_citire
+    80 000000BA FF15[00000000]              call [printf]
+    81 000000C0 83C408                      add esp,4*2
+    82 000000C3 A0[91130000]                mov al,byte[suma_cifre]
+    83                                          
+    84                                      
+    85                                          ; exit(0)
+    86 000000C8 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    87 000000CA FF15[00000000]                  call    [exit]       ; call exit to terminate the program

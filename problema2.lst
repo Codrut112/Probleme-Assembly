@@ -1,0 +1,24 @@
+     1                                  bits 32                         
+     2                                  segment code use32 public code
+     3                                  global inter
+     4                                  
+     5                                  inter:
+     6 00000000 8B4C2410                    mov ecx,[esp+16] ;dimensiunea sirului sursa
+     7 00000004 8B742414                    mov esi,[esp+20] ;s1
+     8 00000008 8B7C2404                    mov edi,[esp+4] ;rez
+     9 0000000C FC                          cld
+    10                                      repeta:
+    11 0000000D A4                          movsb ;muta primul carcater din s1 in rez
+    12 0000000E 47                          inc edi ;urmatorul caracter din rez este lasat liber pentru interclasare
+    13 0000000F E2FC                        loop repeta
+    14                                      
+    15 00000011 8B4C2408                    mov ecx,[esp+8] ;dimensiunea sirului sursa
+    16 00000015 8B74240C                    mov esi,[esp+12] ;s2
+    17 00000019 8B7C2404                    mov edi,[esp+4] ;rez
+    18 0000001D 47                          inc edi ;pornim de pe prima pozitie libera lasata anterior
+    19                                      
+    20                                      repeta2:
+    21 0000001E A4                          movsb ;carcaterele din s2i sunt interclasate printre cele deja existente
+    22 0000001F 47                          inc edi
+    23 00000020 E2FC                        loop repeta2
+    24 00000022 C3                          ret

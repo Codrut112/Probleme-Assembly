@@ -1,0 +1,78 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,scanf,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import scanf msvcrt.dll                       ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 <res 00000004>              a resd 1
+    14 00000004 257800                      read_format db "%x",0
+    15 00000007 55                          k db 55h
+    16 00000008 <res 00000190>              s resd 100
+    17 00000198 00                          contor db 0
+    18 00000199 25782000                    print_format db "%x ",0
+    19                                      
+    20                                      
+    21                                  
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25                                      
+    26 00000000 BF[08000000]                mov edi,s
+    27                                      repeta:
+    28 00000005 8005[98010000]01            add byte[contor],1
+    29 0000000C 68[00000000]                push dword a
+    30 00000011 68[04000000]                push dword read_format
+    31 00000016 FF15[00000000]              call [scanf]
+    32 0000001C 83C408                      add esp,4*2
+    33                                      
+    34 0000001F A1[00000000]                mov eax,[a]
+    35 00000024 83F8FF                      cmp eax,-1
+    36 00000027 7416                        je gata_citirea
+    37                                      
+    38                                      
+    39 00000029 A0[07000000]                mov al,[k]
+    40 0000002E A2[03000000]                mov byte[a+3],al
+    41 00000033 A1[00000000]                mov eax,[a]
+    42 00000038 8907                        mov dword[edi],eax
+    43 0000003A 83C704                      add edi,4
+    44 0000003D EBC6                        jmp repeta
+    45                                      
+    46                                      gata_citirea:
+    47 0000003F 802D[98010000]01            sub byte[contor],1
+    48 00000046 BF[08000000]                mov edi,s
+    49                                      
+    50                                      afiseaza:
+    51                                      
+    52                                      
+    53 0000004B 802D[98010000]01            sub byte[contor],1
+    54 00000052 FF37                        push dword [edi]
+    55 00000054 68[99010000]                push dword print_format
+    56 00000059 FF15[00000000]              call [printf]
+    57 0000005F 83C408                      add esp,4*2
+    58 00000062 A0[98010000]                mov al,byte[contor]
+    59 00000067 3C00                        cmp al,0
+    60 00000069 7407                        je gata_afisarea
+    61 0000006B 83C704                      add edi,4
+    62 0000006E 7402                        je gata_afisarea
+    63 00000070 EBD9                        jmp afiseaza
+    64                                      gata_afisarea:
+    65                                      
+    66                                      
+    67                                      
+    68                                      
+    69                                      
+    70                                  
+    71                                      
+    72                                      
+    73                                      
+    74                                      
+    75                                      
+    76                                      
+    77 00000072 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    78 00000074 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,43 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 010005000A000B000C-        s dw  1,5,10,11,12
+    13 00000009 00                 
+    14                                     ls equ ($-s)/2
+    15 0000000A <res 00000005>             d resb ls
+    16                                  ; our code starts here
+    17                                  segment code use32 class=code
+    18                                      start:
+    19                                          ; ...
+    20 00000000 BE00000000                      mov esi,0
+    21 00000005 BF00000000                      mov edi,0
+    22 0000000A B905000000                      mov ecx,ls
+    23                                          repeta:
+    24 0000000F B300                              mov bl,0
+    25 00000011 89CA                              mov edx,ecx
+    26 00000013 668B86[00000000]                  mov ax,word[s+esi]
+    27 0000001A B910000000                        mov ecx,16
+    28                                           calculeaza:
+    29 0000001F 66D1E8                            shr ax,1;cf=1
+    30 00000022 80D300                            adc bl,0
+    31 00000025 E2F8                             loop calculeaza
+    32 00000027 889F[0A000000]                   mov byte[d+edi],bl
+    33 0000002D 47                               inc edi
+    34 0000002E 83C602                           add esi,2
+    35 00000031 89D1                             mov ecx,edx
+    36 00000033 E2DA                             loop repeta
+    37                                           
+    38                                                     
+    39                                      
+    40                                          ; exit(0)
+    41 00000035 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    42 00000037 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

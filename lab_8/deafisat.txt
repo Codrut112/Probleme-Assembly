@@ -1,0 +1,2 @@
+ Cele doua numere citite sunt a= 10 si b=2
+ Rezultatul operatiei 10 / 2 este: catul = 5 si restul = 0

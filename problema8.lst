@@ -1,0 +1,96 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,fopen,gets,fprintf,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import fopen msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import gets msvcrt.dll
+    11                                  import fprintf msvcrt.dll
+    12                                  import printf msvcrt.dll
+    13                                  ; our data is declared here (the variables needed by our program)
+    14                                  segment data use32 class=data
+    15                                      
+    16 00000000 256300                      print_format db "%c",0
+    17 00000003 7700                        mod_acces db "w",0
+    18 00000005 737472696E672E7478-         nume_fisier db "string.txt",0
+    18 0000000E 7400               
+    19 00000010 <res 00000004>              descriptor resd 1
+    20 00000014 <res 00000004>              caracter resd 1
+    21 00000018 <res 00000064>              s resb 100
+    22                                  
+    23                                  ; our code starts here
+    24                                  segment code use32 class=code
+    25                                      start:
+    26 00000000 68[03000000]                    push dword mod_acces
+    27 00000005 68[05000000]                    push dword nume_fisier
+    28 0000000A FF15[00000000]                  call [fopen]
+    29 00000010 83C408                          add esp,4*2
+    30 00000013 83F800                          cmp eax,0
+    31 00000016 0F8482000000                    je final
+    32 0000001C A3[10000000]                    mov [descriptor],eax
+    33                                          
+    34 00000021 68[18000000]                    push dword s
+    35 00000026 FF15[00000000]                  call [gets]
+    36 0000002C 83C404                          add esp,4
+    37                                          
+    38 0000002F BE[18000000]                    mov esi,s
+    39                                          
+    40                                          repeta:
+    41                                          
+    42 00000034 803E00                          cmp byte[esi],0
+    43 00000037 742E                            je gata
+    44                                          
+    45 00000039 803E41                          cmp byte[esi],'A'
+    46 0000003C 7226                            jb urmatorul
+    47                                          
+    48 0000003E 803E5A                          cmp byte[esi],'Z'
+    49 00000041 7721                            ja urmatorul
+    50 00000043 8A06                            mov al,byte[esi]
+    51 00000045 A2[14000000]                    mov byte[caracter],al
+    52                                          
+    53 0000004A FF35[14000000]                  push dword [caracter]
+    54 00000050 68[00000000]                    push dword print_format
+    55 00000055 FF35[10000000]                  PUSH dword[descriptor]
+    56 0000005B FF15[00000000]                  call [fprintf]
+    57 00000061 83C40C                          add esp,4*3
+    58                                          urmatorul:
+    59 00000064 46                              inc esi
+    60 00000065 EBCD                            jmp repeta
+    61                                          gata:
+    62 00000067 4E                              dec esi
+    63                                          
+    64                                          
+    65                                          
+    66                                          
+    67                                          repeta_2:
+    68 00000068 803E61                          cmp byte[esi],'a'
+    69 0000006B 7226                            jb urmatorul2
+    70                                          
+    71 0000006D 803E7A                          cmp byte[esi],'z'
+    72 00000070 7721                            ja urmatorul2
+    73 00000072 8A06                            mov al,byte[esi]
+    74 00000074 A2[14000000]                    mov byte[caracter],al
+    75 00000079 FF35[14000000]                  push dword [caracter]
+    76 0000007F 68[00000000]                    push dword print_format
+    77 00000084 FF35[10000000]                  push dword [descriptor]
+    78                                          
+    79 0000008A FF15[00000000]                  call [fprintf]
+    80 00000090 83C40C                          add esp,4*3
+    81                                          
+    82                                          
+    83                                          urmatorul2:
+    84 00000093 81FE[18000000]                  cmp esi,s
+    85 00000099 7403                            je gata2
+    86 0000009B 4E                              dec esi
+    87                                          
+    88 0000009C EBCA                            jmp repeta_2
+    89                                          gata2:
+    90                                          final:
+    91                                          
+    92                                          
+    93                                          
+    94 0000009E 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    95 000000A0 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

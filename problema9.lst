@@ -1,0 +1,36 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,printf,gets               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import gets msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 6F75747075742E7478-         nume_output db "output.txt",0
+    13 00000009 7400               
+    14 0000000B 7200                        mod_acces1 db "r",0
+    15 0000000D 7700                        mod_acces2 db "w",0
+    16 0000000F 257300                      format_citire db "%s",0
+    17 00000012 <res 00000004>              nume_fisier resd 1
+    18                                      
+    19                                  
+    20                                  ; our code starts here
+    21                                  segment code use32 class=code
+    22                                      start:
+    23                                          
+    24                                          
+    25                                         
+    26 00000000 68[12000000]                    push dword nume_fisier
+    27 00000005 FF15[00000000]                  call [gets]
+    28                                  
+    29                                          ;fopen(nume_fisier,mod_acces)
+    30 0000000B 68[12000000]                    push dword nume_fisier
+    31 00000010 68[0F000000]                    push dword format_citire
+    32 00000015 FF15[00000000]                  call [printf]
+    33                                          
+    34 0000001B 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    35 0000001D FF15[00000000]                  call    [exit]       ; call exit to terminate the program

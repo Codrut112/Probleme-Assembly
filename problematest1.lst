@@ -1,0 +1,63 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    
+     9                                    import printf msvcrt.dll
+    10                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    11                                  
+    12                                  ; our data is declared here (the variables needed by our program)
+    13                                  segment data use32 class=data
+    14 00000000 78A63412345678122B-         sir dd 1234A678h,12785634h,1a4d3c2bh
+    14 00000009 3C4D1A             
+    15                                      len equ ($-sir)/4
+    16 0000000C <res 00000006>              sir2 resw len
+    17 00000012 6E756D6172756C2064-         print_format db 'numarul de biti de 1 este %d',0
+    17 0000001B 652062697469206465-
+    17 00000024 203120657374652025-
+    17 0000002D 6400               
+    18 0000002F 00                          suma db 0
+    19                                  
+    20                                  
+    21                                  segment code use32 class=code
+    22                                      start:
+    23 00000000 BE[00000000]                mov esi,sir
+    24 00000005 BF[0C000000]                mov edi,sir2
+    25 0000000A B903000000                  mov ecx,len
+    26                                      repeta:
+    27 0000000F 83C601                      add esi,1;incrementam edi acum suntem la adresa unde octetului superior din cuvantul inferior din dw
+    28 00000012 AC                          lodsb;il punem in al
+    29 00000013 AA                          stosb;il stocam in sir
+    30 00000014 51                          push ecx;salvam ecx
+    31 00000015 B908000000                  mov ecx,8;punem in ecx 8 
+    32                                      suma1:;suma bitilor
+    33 0000001A D0E0                        shl al,1
+    34 0000001C 8015[2F000000]00            adc byte[suma],0
+    35 00000023 E2F5                        loop suma1
+    36 00000025 B908000000                  mov ecx,8
+    37 0000002A 83C601                      add esi,1;acum in edi avem adresa octetului superior din cuvantul superior
+    38 0000002D AC                          lodsb;il incarcam in al
+    39 0000002E AA                          stosb;il punem in sir
+    40                                      suma2:
+    41 0000002F D0E0                        shl al,1
+    42 00000031 8015[2F000000]00            adc byte[suma],0
+    43 00000038 E2F5                        loop suma2
+    44 0000003A 59                          pop ecx
+    45 0000003B E2D2                        loop repeta
+    46                                      
+    47 0000003D 0FB605[2F000000]            movzx eax,byte[suma]
+    48 00000044 50                          push eax
+    49 00000045 68[12000000]                push dword print_format
+    50 0000004A FF15[00000000]              call [printf]
+    51 00000050 83C408                      add esp,4*2
+    52                                      
+    53                                      
+    54                                      
+    55                                          
+    56                                      
+    57                                          ; exit(0)
+    58 00000053 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    59 00000055 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

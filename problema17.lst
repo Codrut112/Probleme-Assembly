@@ -1,0 +1,84 @@
+     1                                  ; Se citeste de la tastatura un sir de numere in baza 10 fara semn. Sa se determine valoarea maxima din sir si sa se afiseze in fisierul max.txt (fisierul va fi creat) valoarea maxima, in baza 16
+     2                                  
+     3                                  bits 32 
+     4                                  global start        
+     5                                  
+     6                                  extern exit, gets, fopen, fprintf, fclose, printf
+     7                                                
+     8                                  import exit msvcrt.dll
+     9                                  import fprintf msvcrt.dll
+    10                                  import gets msvcrt.dll
+    11                                  import fopen msvcrt.dll
+    12                                  import fclose msvcrt.dll
+    13                                  import printf msvcrt.dll
+    14                                  
+    15                                  segment data use32 class=data
+    16 00000000 <res 00000064>              s resb 100
+    17 00000064 00                          max db 0
+    18 00000065 257800                      print_format db "%x", 0
+    19 00000068 7700                    	mod_acces db "w", 0
+    20 0000006A 6D61782E74787400        	nume_fisier db "max.txt", 0
+    21 00000072 00000000                    descriptor dd 0
+    22                                  
+    23                                  segment code use32 class=code
+    24                                      start:
+    25                                          ; read the array
+    26 00000000 68[00000000]                    push dword s
+    27 00000005 FF15[00000000]                  call [gets]
+    28 0000000B 83C404                          add esp, 4 * 1
+    29                                          
+    30 0000000E BE[00000000]                    mov esi, s
+    31 00000013 B000                            mov al, 0
+    32                                          repeta:
+    33                                              ; break condition
+    34 00000015 803E2E                              cmp byte[esi], '.'
+    35 00000018 7429                                je final
+    36                                              
+    37                                              ; daca avem caracterul sptatiu => numar complet
+    38 0000001A 803E20                              cmp byte[esi], ' '
+    39 0000001D 740E                                je compara
+    40                                              
+    41 0000001F 8A1E                                mov bl, byte[esi]
+    42 00000021 80EB30                              sub bl, '0' ; Convert the digit to a number
+    43 00000024 B10A                                mov cl, 10
+    44 00000026 F6E1                                mul cl
+    45 00000028 00D8                                add al, bl
+    46 0000002A 46                                  inc esi
+    47 0000002B EBE8                                jmp repeta
+    48                                              
+    49                                              compara:
+    50 0000002D 3A05[64000000]                          cmp al, [max]
+    51 00000033 7702                                    ja atribuire
+    52 00000035 7607                                    jna continue
+    53                                                  atribuire:
+    54 00000037 A2[64000000]                                mov [max], al
+    55 0000003C EB00                                        jmp continue
+    56                                                  continue:
+    57 0000003E B000                                    mov al, 0
+    58 00000040 46                                      inc esi
+    59 00000041 EBD2                                jmp repeta
+    60                                              final:
+    61 00000043 0FB61D[64000000]                 movzx ebx, byte[max] 
+    62                                              
+    63 0000004A 68[68000000]                    push dword mod_acces
+    64 0000004F 68[6A000000]            		push dword nume_fisier
+    65 00000054 FF15[00000000]          		call [fopen]
+    66 0000005A 83C408                  		add esp, 4 * 2
+    67                                  		
+    68 0000005D 83F800                          cmp eax, 0
+    69 00000060 7424                    		je final2
+    70                                  		
+    71 00000062 A3[72000000]                    mov [descriptor], eax
+    72 00000067 53                      		push ebx
+    73 00000068 68[65000000]            		push dword print_format
+    74 0000006D FF35[72000000]          		push dword [descriptor]
+    75 00000073 FF15[00000000]          		call [fprintf]
+    76 00000079 83C40C                  		add esp, 4 * 3
+    77                                  		
+    78 0000007C 50                      		push eax
+    79 0000007D FF15[00000000]          		call [fclose]
+    80 00000083 83C404                  		add esp, 4
+    81                                          
+    82                                          final2:
+    83 00000086 6A00                            push    dword 0      
+    84 00000088 FF15[00000000]                  call    [exit]

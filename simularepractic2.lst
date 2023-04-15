@@ -1,0 +1,92 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,scanf,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import scanf msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 <res 00000190>              s resd 100
+    14 00000190 <res 00000004>              a resd 1
+    15 00000194 256400                      read_format db "%d",0
+    16 00000197 0500                        k dw 5
+    17 00000199 25642000                    print_format db "%d ",0
+    18 0000019D 25782000                    print_format2 db "%x ",0
+    19                                      
+    20                                      
+    21                                  
+    22                                  ; our code starts here
+    23                                  segment code use32 class=code
+    24                                      start:
+    25 00000000 BF[00000000]                mov edi,s
+    26                                          citire:
+    27 00000005 68[90010000]                    push dword a
+    28 0000000A 68[94010000]                    push dword read_format
+    29 0000000F FF15[00000000]                  call [scanf]
+    30 00000015 83C408                          add esp,4*2
+    31                                          
+    32 00000018 833D[90010000]00                cmp dword[a],0
+    33 0000001F 744D                            je gata_citirea
+    34 00000021 BA00000000                      mov edx,0
+    35 00000026 A1[90010000]                    mov eax,[a]
+    36 0000002B 66BB0A00                        mov bx,10
+    37 0000002F 66B90000                        mov cx,0
+    38                                          suma_cifre:
+    39 00000033 66F7F3                          div bx
+    40 00000036 6601D1                          add cx,dx
+    41 00000039 BA00000000                      mov edx,0
+    42 0000003E 0FB7C0                          movzx eax,ax
+    43 00000041 83F800                          cmp eax,0
+    44 00000044 7402                            je verifica
+    45 00000046 75EB                            jne suma_cifre
+    46                                          verifica:
+    47 00000048 A1[90010000]                    mov eax,dword[a]
+    48 0000004D 66BB0A00                        mov bx,10
+    49 00000051 66F7F3                          div bx
+    50 00000054 663B15[97010000]                cmp dx,word[k]
+    51 0000005B 7402                            je adauga_sir
+    52 0000005D 75A6                            jne citire
+    53                                          
+    54                                          adauga_sir:
+    55                                          
+    56 0000005F 83C408                          add esp,4*2
+    57 00000062 A1[90010000]                    mov eax,[a]
+    58 00000067 8907                            mov dword[edi],eax
+    59 00000069 83C704                          add edi,4
+    60 0000006C EB97                            jmp citire
+    61                                          
+    62                                          gata_citirea:
+    63 0000006E BF[00000000]                    mov edi,s
+    64                                          
+    65                                          afiseaza1:
+    66                                          
+    67 00000073 FF37                            push dword [edi]
+    68 00000075 68[99010000]                    push dword print_format
+    69 0000007A FF15[00000000]                  call [printf]
+    70 00000080 83C408                          add esp,4*2
+    71 00000083 83C704                          add edi,4
+    72 00000086 833F00                          cmp dword[edi],0
+    73 00000089 7402                            je gata_afisare1
+    74 0000008B EBE6                            jmp afiseaza1
+    75                                          gata_afisare1:
+    76 0000008D BF[00000000]                    mov edi,s
+    77                                          afiseaza2:
+    78                                          
+    79 00000092 FF37                            push dword [edi]
+    80 00000094 68[9D010000]                    push dword print_format2
+    81 00000099 FF15[00000000]                  call [printf]
+    82 0000009F 83C408                          add esp,4*2
+    83 000000A2 83C704                          add edi,4
+    84 000000A5 833F00                          cmp dword[edi],0
+    85 000000A8 7402                            je gata_afisare2
+    86 000000AA EBE6                            jmp afiseaza2
+    87                                          gata_afisare2:
+    88                                          
+    89                                          
+    90                                          
+    91 000000AC 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    92 000000AE FF15[00000000]                  call    [exit]       ; call exit to terminate the program

@@ -1,0 +1,107 @@
+     1                                  bits 32
+     2                                  global start
+     3                                  extern exit,fopen,fscanf,printf,fclose
+     4                                  import fscanf msvcrt.dll
+     5                                  import exit msvcrt.dll
+     6                                  import fopen msvcrt.dll
+     7                                  import printf msvcrt.dll
+     8                                  import fclose msvcrt.dll
+     9                                  
+    10                                  segment data use32 class=data
+    11                                  
+    12 00000000 7200                     mod_acces db "r",0
+    13 00000002 696E7075742E747874-      nume_fisier db "input.txt",0
+    13 0000000B 00                 
+    14 0000000C <res 00000004>           descriptor resd 1
+    15 00000010 256300                   format_citire db "%c",0
+    16 00000013 25642000                 format_print db "%d ",0
+    17 00000017 <res 00000004>           a resd 1
+    18 0000001B 10000000                 min dd 16
+    19                                  
+    20 0000001F 00                       contor db 0
+    21                                  segment code use32 clas=code
+    22                                        start:
+    23                                        
+    24 00000000 68[00000000]               push dword mod_acces
+    25 00000005 68[02000000]               push dword nume_fisier
+    26 0000000A FF15[00000000]             call [fopen]
+    27 00000010 83C408                     add esp,4*2
+    28                                     
+    29 00000013 83F800                     cmp eax,0
+    30 00000016 0F8490000000               je final
+    31                                     
+    32 0000001C A3[0C000000]               mov [descriptor],eax
+    33                                     
+    34                                     repeta:
+    35 00000021 68[17000000]               push dword a
+    36 00000026 68[10000000]               push dword format_citire
+    37 0000002B FF35[0C000000]             push dword [descriptor]
+    38 00000031 FF15[00000000]             call [fscanf]
+    39 00000037 83C40C                     add esp,4*3
+    40                                     
+    41 0000003A 83F8FF                     cmp eax,-1
+    42 0000003D 7459                       je minim_final
+    43                                     
+    44                                    
+    45 0000003F 8B1D[17000000]             mov ebx,[a]
+    46 00000045 83FB20                     cmp ebx," "
+    47 00000048 7522                       jne mai_departe
+    48 0000004A 7400                       je afiseaza_minimul
+    49                                     afiseaza_minimul:
+    50 0000004C FF35[1B000000]             push dword[min]
+    51 00000052 68[13000000]               push dword format_print
+    52 00000057 FF15[00000000]             call [printf]
+    53 0000005D 83C408                     add esp,4*2
+    54 00000060 C705[1B000000]1000-        mov dword[min],16
+    54 00000068 0000               
+    55 0000006A EBB5                       jmp repeta
+    56                                     
+    57                                     mai_departe:
+    58 0000006C 83FB39                     cmp ebx,"9"
+    59 0000006F 7702                       ja caracter
+    60 00000071 7610                       jbe numar
+    61                                     
+    62                                     caracter:
+    63 00000073 83EB41                     sub ebx,"A"
+    64 00000076 83C30A                     add ebx,10
+    65 00000079 3B1D[1B000000]             cmp ebx,[min]
+    66 0000007F 720F                       jb mai_mic
+    67 00000081 7713                       ja sari
+    68                                     
+    69                                     numar:
+    70 00000083 83EB30                     sub ebx,"0"
+    71 00000086 3B1D[1B000000]             cmp ebx,[min]
+    72 0000008C 7202                       jb mai_mic
+    73 0000008E 7706                       ja sari
+    74                                     
+    75                                     mai_mic:
+    76 00000090 891D[1B000000]             mov [min],ebx
+    77                                     
+    78                                     sari:
+    79 00000096 EB89                       jmp repeta
+    80                                     
+    81                                     minim_final:
+    82 00000098 FF35[1B000000]             push dword[min]
+    83 0000009E 68[13000000]               push dword format_print
+    84 000000A3 FF15[00000000]             call [printf]
+    85 000000A9 83C408                     add esp,4*2
+    86                                     
+    87                                     final:
+    88 000000AC FF35[0C000000]             push dword[descriptor]
+    89 000000B2 FF15[00000000]             call [fclose]
+    90 000000B8 83C404                     add esp,4
+    91                                     
+    92                                     
+    93                                     
+    94                                     
+    95                                          
+    96                                       
+    97                                        
+    98                                                     
+    99                                        
+   100                                        
+   101                                        
+   102                                        
+   103                                        
+   104                                        
+   105                                   

@@ -1,0 +1,66 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; Se da un sir de dublucuvinte. Sa se obtina sirul format din octetii inferiori ai cuvintelor superioare din elementele sirului de dublucuvinte care sunt palindrom in scrierea in baza 10.
+    12                                  ;s DD 12345678h, 1A2C3C4Dh, 98FCDC76h
+    13                                  ;d DB 2Ch, FCh.
+    14                                  segment data use32 class=data
+    15 00000000 785634124D3C2C1A76-         s dd 12345678h, 1A2C3C4Dh, 98FCDC76h
+    15 00000009 DCFC98             
+    16                                      ls equ ($-s)/4
+    17 0000000C <res 00000003>              d resb ls
+    18                                      
+    19                                  
+    20                                  ; our code starts here
+    21                                  segment code use32 class=code
+    22                                      start:
+    23 00000000 BE00000000                  mov esi,0;esi=0
+    24 00000005 BF00000000                  mov edi,0;edi=0
+    25 0000000A B903000000                  mov ecx,ls;ecx=ls
+    26                                      repeta:
+    27 0000000F 83C602                        add esi,2;esi=esi+2
+    28 00000012 660FB686[00000000]            movzx ax,byte[s+esi];ax=octetul inferior din cuvantul superior
+    29 0000001A B30A                          mov bl,10;bl=10
+    30 0000001C 6683F80A                      cmp ax,10
+    31 00000020 722A                          jb palindrom
+    32 00000022 7300                          jae continua
+    33                                        continua:
+    34 00000024 6683F864                      cmp ax,100
+    35 00000028 7202                          jb compara
+    36 0000002A 7308                          jae mai_mare_ca_100
+    37                                        compara:
+    38 0000002C F6F3                          div bl;al=cifra zecimala,ah=cifra unitara
+    39 0000002E 38E0                          cmp al,ah
+    40 00000030 741A                          je palindrom
+    41 00000032 7529                          jne myendif
+    42                                        mai_mare_ca_100:
+    43 00000034 B264                          mov dl,100
+    44 00000036 F6F3                          div bl;ah=cifra unitara
+    45 00000038 88E3                          mov bl,ah;bl=cifra unitara
+    46 0000003A 660FB686[00000000]            movzx ax,byte[s+esi]
+    47 00000042 F6F2                          div dl;al=cifra sutelor
+    48 00000044 38D8                          cmp al,bl
+    49 00000046 7404                          je palindrom
+    50 00000048 7513                          jne myendif
+    51 0000004A EB11                          jmp myendif
+    52                                        palindrom:
+    53 0000004C 8A86[00000000]                mov al,byte[s+esi]
+    54 00000052 8887[0C000000]                mov byte[d+edi],al
+    55 00000058 83C701                        add edi,1
+    56 0000005B EB00                          jmp myendif
+    57                                        myendif:
+    58 0000005D 83C602                        add esi,2
+    59 00000060 E2AD                          loop repeta
+    60                                      
+    61                                          
+    62                                      
+    63                                          ; exit(0)
+    64 00000062 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    65 00000064 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

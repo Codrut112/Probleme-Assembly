@@ -1,0 +1,46 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,gets,printf,stocare             ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll 
+     9                                  import gets msvcrt.dll
+    10                                  import printf msvcrt.dll
+    11                                  
+    12                                  ; our data is declared here (the variables needed by our program)
+    13                                  segment data use32 
+    14 00000000 736972756C20657374-        mesaj_citire db "sirul este:",0
+    14 00000009 653A00             
+    15 0000000C <res 00000064>             s1 resb 100
+    16 00000070 <res 00000064>             s2 resb 100
+    17 000000D4 <res 00000001>             ls resb 1
+    18 000000D5 00                         stare db 0
+    19 000000D6 00                         cifra db 0
+    20 000000D7 736972756C20657374-        mesaj_afisare db "sirul este %s",0
+    20 000000E0 6520257300         
+    21 000000E5 00                         contor db 0
+    22 000000E6 2573                       format_citire db "%s"
+    23 000000E8 646120256400               format_print db "da %d",0
+    24                                  
+    25                                  ; our code starts here
+    26                                  segment code use32 public code
+    27                                      start:
+    28                                      ;afisam mesajul de citire 
+    29 00000000 68[00000000]            push dword mesaj_citire
+    30 00000005 FF15[00000000]          call [printf]
+    31 0000000B 83C404                  add esp,4
+    32                                  
+    33                                  ;citirea efectiva a sirului
+    34 0000000E 68[0C000000]            push dword s1 
+    35 00000013 FF15[00000000]          call [gets]
+    36 00000019 83C404                  add esp,4
+    37                                  
+    38 0000001C 68[0C000000]            push s1
+    39 00000021 68[70000000]            push s2
+    40 00000026 E8(00000000)            call stocare
+    41 0000002B 83C408                  add esp,4*2
+    42                                  
+    43 0000002E 6A00                    push dword 0
+    44 00000030 FF15[00000000]          call [exit]

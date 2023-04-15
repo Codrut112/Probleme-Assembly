@@ -1,0 +1,76 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                                            ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13                                      ; ..
+    14 00000000 887766558833221178-         s dq 1122338855667788h,78h,1020304050607080h,0fffh
+    14 00000009 000000000000008070-
+    14 00000012 605040302010FF0F00-
+    14 0000001B 0000000000         
+    15                                      ls equ ($-s)/8
+    16 00000020 <res 00000004>              d resb ls
+    17                                  
+    18                                  ; se da un sir de quadworduri ,sa se formeze sirul bytilor cu val maxima dun fiecare quadword
+    19                                  segment code use32 class=code
+    20                                      start:
+    21                                          ; ...
+    22 00000000 BE00000000                  mov esi,0
+    23 00000005 BF00000000                  mov edi,0
+    24 0000000A B904000000                  mov ecx,ls
+    25 0000000F B300                        mov bl,0
+    26                                      repeta_mare:
+    27 00000011 89CA                           mov edx,ecx
+    28 00000013 B908000000                     mov ecx,8
+    29 00000018 B380                           mov bl,-128
+    30 0000001A 8A86[07000000]                 mov al,byte[s+esi+7]
+    31 00000020 3C7F                           cmp al,1111111b
+    32 00000022 7302                           jae cu_semn
+    33 00000024 7602                           jbe repeta
+    34 00000026 EB15                           cu_semn: jmp repeta_cu_semn
+    35                                      repeta:
+    36 00000028 8A86[00000000]                   mov al,byte[s+esi]
+    37 0000002E 46                               inc esi
+    38 0000002F 38D8                             cmp al,bl
+    39 00000031 7704                             ja  nou_maxim
+    40 00000033 7600                             jbe   nu
+    41                                              nu:
+    42 00000035 EB02                                  jmp myendif
+    43                                              nou_maxim:
+    44 00000037 88C3                                   mov bl,al
+    45                                             myendif:
+    46                                             
+    47 00000039 E2ED                        loop repeta
+    48 0000003B EB13                           sari:jmp endyf
+    49                                         repeta_cu_semn:
+    50 0000003D 8A86[00000000]                   mov al,byte[s+esi]
+    51 00000043 46                               inc esi
+    52 00000044 38D8                             cmp al,bl
+    53 00000046 7F04                             jg  nou_maxim_2
+    54 00000048 7E00                             jle   nu_2
+    55                                              nu_2:
+    56 0000004A EB02                                  jmp myendif_2
+    57                                              nou_maxim_2:
+    58 0000004C 88C3                                   mov bl,al
+    59                                             myendif_2:
+    60                                             
+    61 0000004E E2ED                        loop repeta_cu_semn
+    62                                         endyf:
+    63 00000050 889F[20000000]                mov byte[d+edi],bl
+    64 00000056 47                            inc edi
+    65 00000057 89D1                          mov ecx,edx
+    66 00000059 E2B6                        loop repeta_mare
+    67                                           
+    68                                      
+    69                                  
+    70                                      
+    71                                          ; exit(0)
+    72 0000005B 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    73 0000005D FF15[00000000]                  call    [exit]       ; call exit to terminate the program

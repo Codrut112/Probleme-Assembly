@@ -1,0 +1,78 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,gets,printf               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+     9                                  import gets msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    10                                  import printf msvcrt.dll
+    11                                  ; our data is declared here (the variables needed by our program)
+    12                                  segment data use32 class=data
+    13 00000000 <res 00000064>              s resb 100
+    14 00000064 03                          n db 3
+    15 00000065 00                          contor db 0
+    16 00000066 <res 00000064>              cuvant resb 100
+    17 000000CA 257300                      print_format db "%s",0
+    18                                  ; our code starts here
+    19                                  segment code use32 class=code
+    20                                      start:
+    21                                          
+    22                                          
+    23 00000000 68[00000000]                    push dword s
+    24 00000005 FF15[00000000]                  call [gets]
+    25 0000000B 83C404                          add esp,4
+    26 0000000E BF[66000000]                    mov edi,cuvant
+    27 00000013 8A1D[64000000]                  mov bl,byte[n]
+    28 00000019 80EB01                          sub bl,1
+    29 0000001C BE[00000000]                    mov esi,s 
+    30                                          
+    31 00000021 803D[64000000]01                cmp byte[n],1
+    32 00000028 741B                            je repeta_2
+    33                                          
+    34                                          repeta:
+    35                                          
+    36 0000002A 46                              inc esi
+    37 0000002B 807EFF20                        cmp byte[esi-1],' '
+    38 0000002F 7402                            je numara
+    39                                          
+    40 00000031 EBF7                            jmp repeta
+    41                                          
+    42                                         numara:
+    43                                        
+    44 00000033 8005[65000000]01               add byte[contor],1
+    45 0000003A A0[65000000]                   mov al,byte[contor]
+    46 0000003F 38D8                           cmp al,bl
+    47 00000041 7402                           je cuvant_formare
+    48 00000043 75E5                           jne repeta
+    49                                         
+    50                                         cuvant_formare:
+    51                                         
+    52                                         
+    53                                         repeta_2:
+    54                                          
+    55 00000045 A4                             movsb
+    56 00000046 803E00                         cmp byte[esi],0
+    57 00000049 7407                           je gata
+    58 0000004B 803E20                         cmp byte[esi],' '
+    59 0000004E 7402                           je gata
+    60 00000050 75F3                           jne repeta_2
+    61                                         
+    62                                         gata:
+    63                                         
+    64 00000052 68[66000000]                   push dword cuvant
+    65 00000057 68[CA000000]                   push dword print_format
+    66 0000005C FF15[00000000]                 call [printf]
+    67                                         
+    68                                          
+    69                                          
+    70                                          
+    71                                          
+    72                                          
+    73                                          
+    74                                          
+    75                                          
+    76                                          
+    77 00000062 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+    78 00000064 FF15[00000000]                  call    [exit]       ; call exit to terminate the program

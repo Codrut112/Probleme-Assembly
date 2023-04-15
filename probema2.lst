@@ -1,0 +1,112 @@
+     1                                  bits 32 ; assembling for the 32 bits architecture
+     2                                  
+     3                                  ; declare the EntryPoint (a label defining the very first instruction of the program)
+     4                                  global start        
+     5                                  
+     6                                  ; declare external functions needed by our program
+     7                                  extern exit,scanf,printf,fopen,fprintf,fclose               ; tell nasm that exit exists even if we won't be defining it
+     8                                  import exit msvcrt.dll
+     9                                  import scanf msvcrt.dll    ; exit is a function that ends the calling process. It is defined in msvcrt.dll
+    10                                  import printf msvcrt.dll                          ; msvcrt.dll contains exit, printf and all the other important C-runtime specific functions
+    11                                  import fopen msvcrt.dll
+    12                                  import fprintf msvcrt.dll
+    13                                  import fclose msvcrt.dll
+    14                                  ; our data is declared here (the variables needed by our program)
+    15                                  segment data use32 class=data
+    16 00000000 <res 00000004>              n resd 1
+    17 00000004 <res 00000004>              a resd 1
+    18 00000008 00000000                    suma_par dd 0
+    19 0000000C 00000000                    suma_impar dd 0
+    20 00000010 00000000                    dif dd 0
+    21 00000014 256400                      format_citire db "%d",0
+    22 00000017 6E756D6172756C2064-         mesaj db "numarul de elemente:",0
+    22 00000020 6520656C656D656E74-
+    22 00000029 653A00             
+    23 0000002C 6F75747075742E7478-         nume_fisier db "output.txt",0
+    23 00000035 7400               
+    24 00000037 7700                        mod_acces db 'w',0
+    25 00000039 256420256420256400          format_print db "%d %d %d",0
+    26 00000042 00000000                    descriptor dd 0
+    27                                  
+    28                                  ; our code starts here
+    29                                  segment code use32 class=code
+    30                                      start:
+    31 00000000 68[17000000]                    push dword mesaj
+    32 00000005 FF15[00000000]                  call [printf]
+    33 0000000B 83C404                          add esp,4
+    34                                          
+    35 0000000E 68[00000000]                    push dword n
+    36 00000013 68[14000000]                    push dword format_citire
+    37 00000018 FF15[00000000]                  call [scanf]
+    38 0000001E 83C408                          add esp,4*2
+    39                                          
+    40                                          repeta:
+    41                                          
+    42 00000021 832D[00000000]01                sub dword[n],1
+    43                                          
+    44 00000028 68[04000000]                    push dword a
+    45 0000002D 68[14000000]                    push dword format_citire
+    46 00000032 FF15[00000000]                  call [scanf]
+    47 00000038 83C408                          add esp,4*2
+    48                                          
+    49 0000003B A1[04000000]                    mov eax,[a]
+    50                                          
+    51 00000040 83E001                          and eax,1b
+    52                                          
+    53 00000043 83F801                          cmp eax,1
+    54 00000046 740F                            je impar
+    55 00000048 7500                            jne par
+    56                                          
+    57                                  
+    58                                          par: 
+    59 0000004A A1[04000000]                    mov eax,[a]
+    60 0000004F 0105[08000000]                  add   [suma_par],eax     
+    61 00000055 EB0B                            jmp salt
+    62                                          
+    63                                          impar:
+    64 00000057 A1[04000000]                    mov eax,[a]
+    65 0000005C 0105[0C000000]                  add [suma_impar],eax
+    66                                          salt:
+    67 00000062 833D[00000000]00                cmp dword[n],0
+    68 00000069 77B6                            ja repeta
+    69                                          
+    70 0000006B 8B1D[08000000]                  mov ebx,[suma_par]
+    71 00000071 2B1D[0C000000]                  sub ebx,[suma_impar]
+    72                                          
+    73 00000077 68[37000000]                   push dword mod_acces
+    74 0000007C 68[2C000000]                    push dword nume_fisier
+    75 00000081 FF15[00000000]                  call [fopen]
+    76                                          
+    77 00000087 83C408                          add esp, 4*2   
+    78 0000008A A3[42000000]                    mov [descriptor],eax
+    79                                          
+    80                                              
+    81                                          ;afisare mesaj fprintf(suma_pare,linie_noua,suma_impare,linie_noua,ebx,format,descriptor)
+    82 0000008F 53                              push ebx
+    83                                          
+    84                                          
+    85 00000090 FF35[08000000]                  push dword[suma_par]            ;suma_pare e byte
+    86                                          
+    87 00000096 FF35[0C000000]                  push dword[suma_impar]                 ;suma_impare e byte
+    88                                          
+    89 0000009C 68[39000000]                    push dword format_print
+    90                                          
+    91 000000A1 50                              push eax
+    92                                          
+    93 000000A2 FF15[00000000]                  call [fprintf]
+    94 000000A8 83C410                          add esp, 4*4
+    95                                          
+    96 000000AB FF35[42000000]                  push dword[descriptor]
+    97 000000B1 FF15[00000000]                  call [fclose]
+    98                                         
+    99                                          final:
+   100                                          
+   101                                          
+   102                                          
+   103                                          
+   104                                          
+   105                                          
+   106                                          
+   107                                          ; exit(0)
+   108 000000B7 6A00                            push    dword 0      ; push the parameter for exit onto the stack
+   109 000000B9 FF15[00000000]                  call    [exit]       ; call exit to terminate the program
